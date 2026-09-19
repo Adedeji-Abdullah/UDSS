@@ -21,6 +21,10 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
+app.get('/udss', (req, res) => {
+    console.log("UDSS!!!")
+})
+
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);
 })
