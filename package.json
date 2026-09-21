@@ -5,7 +5,8 @@
   "main": "serverr.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "nodemon server.js" 
+    "server": "nodemon server.js",
+    "dev": "index.html"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^18.0.1",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.10.1",
     "multer": "^2.4.0",
     "nodemon": "^3.1.14"
