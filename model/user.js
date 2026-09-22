@@ -1,4 +1,5 @@
-const mongoose = require('mongoose')
+// const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 const UserSchema = mongoose.Schema({
     name: String,
@@ -6,3 +7,5 @@ const UserSchema = mongoose.Schema({
     password: String,
     class: String
 })
+
+export default mongoose.model('User', UserSchema)

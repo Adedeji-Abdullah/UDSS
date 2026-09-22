@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "ESmodule",
   "bugs": {
     "url": "https://github.com/Adedeji-Abdullah/UDSS/issues"
   },
