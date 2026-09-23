@@ -23,7 +23,7 @@ app.get("/udss", (req, res) => {
 app.post("/register", async (req, res) => {
   const dataInfo = req.body;
   console.log(dataInfo);
-  if (!dataInfo.name || !dataInfo.email || !dataInfo.UId || !dataInfo.class) {
+  if (!dataInfo.name || !dataInfo.email || !dataInfo.UId || !dataInfo.class || dataInfo.subjects < 10) {
     return res.status(400).json({ message: "Missing required fields" });
   }
   try {

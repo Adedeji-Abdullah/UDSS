@@ -3,9 +3,14 @@ import mongoose from 'mongoose'
 
 const UserSchema = mongoose.Schema({
     name: String,
+    otherNames: String,
     email: String,
-    password: String,
-    class: String
+    UId: {
+        type: String,
+        unique: true
+    },
+    class: String,
+    subjects: []
 })
 
 export default mongoose.model('User', UserSchema)
