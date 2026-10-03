@@ -20,7 +20,7 @@ app.get("/udss", (req, res) => {
   res.json({ message: "UDSS endpoint hit!" });
 });
 
-app.post("/register", async (req, res) => {
+app.post("/register", checkTeacher, async (req, res) => {
   const dataInfo = req.body;
   console.log(dataInfo);
   if (!dataInfo.name || !dataInfo.email || !dataInfo.UId || !dataInfo.class || dataInfo.subjects < 10) {
@@ -35,6 +35,14 @@ app.post("/register", async (req, res) => {
     console.log(error);
   }
 });
+
+const checkTeacher = (req, res, next) => {
+ if (req.secrete === "1069UDSS") {
+  next();
+ } else {
+  res.status(404).json({message: "You are not eligible"})
+ }
+}
 
 app.post('/login', async (req, res) => {
     const data = req.body;
