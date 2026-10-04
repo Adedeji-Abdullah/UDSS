@@ -1,71 +1,46 @@
-import mongoose from "mongoose";
-import cors from "cors";
 import express from "express";
+import cors from "cors";
 import dotenv from "dotenv";
-import multer from "multer";
-import User from "./model/user.js";
+import { fileURLToPath } from "node:url";
+
+import { connectDB } from "./src/config/db.js";
+import authRoutes from "./src/routes/authRoutes.js";
+import principalRoutes from "./src/routes/principalRoutes.js";
+import teacherRoutes from "./src/routes/teacherRoutes.js";
+import formTeacherRoutes from "./src/routes/formTeacherRoutes.js";
+import studentRoutes from "./src/routes/studentRoutes.js";
+
+const indexFilePath = fileURLToPath(new URL("./index.html", import.meta.url));
 
 dotenv.config();
 
 const app = express();
-app.use(express.json());
+const PORT = process.env.PORT || 5000;
+
 app.use(cors());
+app.use(express.json());
+app.use(express.static("./"));
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", message: "School portal API is running." });
+});
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.sendFile(indexFilePath);
 });
 
-app.get("/udss", (req, res) => {
-  console.log("UDSS!!!");
-  res.json({ message: "UDSS endpoint hit!" });
+app.use("/api/auth", authRoutes);
+app.use("/api/principal", principalRoutes);
+app.use("/api/teacher", teacherRoutes);
+app.use("/api/form-teacher", formTeacherRoutes);
+app.use("/api/student", studentRoutes);
+
+app.get(/^(?!\/api).*/, (req, res) => {
+  res.sendFile(indexFilePath);
 });
 
-app.post("/register", checkTeacher, async (req, res) => {
-  const dataInfo = req.body;
-  console.log(dataInfo);
-  if (!dataInfo.name || !dataInfo.email || !dataInfo.UId || !dataInfo.class || dataInfo.subjects < 10) {
-    return res.status(400).json({ message: "Missing required fields" });
-  }
-  try {
-    const data = await new User(dataInfo);
-    // const result = await data.json()
-    console.log(data);
-    res.json(data);
-  } catch (error) {
-    console.log(error);
-  }
-});
+connectDB();
 
-const checkTeacher = (req, res, next) => {
- if (req.secrete === "1069UDSS") {
-  next();
- } else {
-  res.status(404).json({message: "You are not eligible"})
- }
-}
-
-app.post('/login', async (req, res) => {
-    const data = req.body;
-    if(!data.name || !data.email || !data.UId) {
-        return res.status(400).json({ message: "Missing required fields" });
-    }
-    try {
-        const result = await User.findOne({ UId: data.UId });
-    console.log(result.json())
-    if (result) {
-        res.json(result)
-    }
-    } catch (err) {
-        res.status(404).json({message: "User not found"})
-    }
-    // Add login logic here
-});
-
-app.listen(process.env.PORT, async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_CONNECTION);
-    console.log("good " + process.env.PORT);
-  } catch (error) {
-    console.log(error);
-  }
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

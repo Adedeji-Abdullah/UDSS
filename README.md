@@ -1,253 +1,317 @@
-🏫 School Portal Management System
+# School Portal / Student Result Management System
 
-A modern School Portal Management System designed to simplify student academic management, result processing, and school-wide performance monitoring.
+## 1. Overall system architecture
 
-The platform will allow authorized school staff to manage students, classes, sets, subjects, and academic results while automatically calculating and publishing student results.
+This project follows a backend-first architecture with a Node.js + Express API, MongoDB + Mongoose persistence, JWT authentication, and role-based access control. The frontend is intentionally thin and should only consume the API; it never decides authorization.
 
----
+### Core architecture
 
-📌 Overview
+- API layer: Express routes for authentication, administration, teaching workflows, form-teacher review, and student access.
+- Authentication layer: JWT-based login with secure password hashing via bcrypt.
+- Authorization layer: backend permission checks based on role and ownership.
+- Data layer: MongoDB collections for users, classrooms, subjects, teacher profiles, student profiles, and results.
+- Business workflow: subject teacher uploads -> form teacher review -> final student result sheet generation.
 
-The School Portal is being developed to provide a centralized platform where schools can manage academic records digitally.
+### Why this architecture is better
 
-The system will provide dashboards and tools for different levels of the school, including:
+This design improves on a simple frontend-only setup because all critical rules are enforced on the server:
 
-- 🏫 Entire School
-- 📚 Classes
-- 👥 Sets
-- 👨‍🎓 Individual Students
-- 👨‍🏫 Teachers
-- 🛠️ Administrators
-
-The system will automatically calculate students' results based on the school's grading system and make published results available to students.
-
----
-
-🎯 Objectives
-
-The main objectives of the project are to:
-
-- Digitize the school's academic result system.
-- Automatically calculate student results.
-- Reduce errors in manual result calculations.
-- Allow students to securely view their results.
-- Provide school-wide academic statistics.
-- Provide class and set performance analytics.
-- Give administrators centralized control over academic records.
-- Create a scalable foundation for additional school-management features.
+- a student cannot access another student's result by URL manipulation;
+- a subject teacher cannot upload results for an unassigned subject or class;
+- a form teacher can only review results for their assigned class;
+- principal-only actions are guarded by backend role checks.
 
 ---
 
-🚀 Features
+## 2. Database models / schema
 
-👨‍🎓 Student Management
+### User
 
-Authorized users will be able to:
+Stores shared authentication information:
 
-- Register students.
-- Create and manage student profiles.
-- Assign students to classes.
-- Assign students to sets.
-- Update student information.
-- View student academic records.
-- Track academic performance.
+- name
+- email
+- password
+- role: principal | teacher | student
+- schoolId for students
+- staffId for teachers
 
----
+### TeacherProfile
 
-📝 Result Management
+Stores teacher-specific assignment data:
 
-The system will allow authorized staff to:
+- user
+- teacherId
+- subjects
+- classes
+- isFormTeacher
+- formTeacherClass
 
-- Enter student scores.
-- Edit scores where permitted.
-- Calculate total scores automatically.
-- Calculate averages.
-- Calculate grades.
-- Calculate positions where applicable.
-- Generate student result sheets.
-- Publish results.
-- View previous academic results.
+### StudentProfile
 
-Result Calculation
+Stores student-specific data:
 
-The system will automatically process scores.
+- user
+- studentId
+- class
+- registeredSubjects
 
-Assessment Score + Examination Score
-                ↓
-           Total Score
-                ↓
-              Grade
-                ↓
-          Student Result
+### Classroom
 
-The grading system will be configurable according to the school's requirements.
+Stores class setup:
 
----
+- name
+- formTeacher
+- subjects
+- students
 
-📊 Dashboards
+### Subject
 
-🏫 School Dashboard
+Stores subject definitions:
 
-The school dashboard will provide an overview of the entire school.
+- name
+- code
+- isElective
+- classIds
+- teacherAssignments
 
-Possible statistics include:
+### ResultSubmission
 
-- Total students
-- Total classes
-- Total sets
-- Overall school average
-- Subject performance
-- Class performance
-- Set performance
-- Student performance
-- Result publication status
+Stores a single subject result record:
 
----
+- student
+- studentId
+- class
+- subject
+- teacher
+- score
+- academicSession
+- term
+- status: PENDING | APPROVED | REJECTED
+- formTeacher
+- comments
+- uploadedAt
+- reviewedAt
 
-📚 Class Dashboard
+### ResultSheet
 
-Each class will have its own dashboard.
-
-The dashboard can display:
-
-- Number of students
-- Class average
-- Highest score
-- Lowest score
-- Subject performance
-- Student performance
-- Performance distribution
-- Student rankings where applicable
-
-Example:
-
-SS 2
-
-Students: 45
-Class Average: 68%
-Highest Score: 94%
-Lowest Score: 31%
+Stores the final compiled sheet for one student, one class, one academic session, and one term.
 
 ---
 
-👥 Set Dashboard
+## 3. Relationships between models
 
-Each set will have its own performance dashboard.
+- User has one role and can be either principal, teacher, or student.
+- TeacherProfile belongs to User.
+- StudentProfile belongs to User.
+- Classroom has many StudentProfile records.
+- Classroom has many Subject records.
+- Subject can be taught by many TeacherProfile records.
+- ResultSubmission belongs to a student, subject, teacher, and class.
+- ResultSheet belongs to a student and class.
 
-For example:
-
-SS2 A
-SS2 B
-SS2 C
-
-The dashboard can provide:
-
-- Number of students
-- Average score
-- Subject performance
-- Student performance
-- Highest-performing students
-- Lowest-performing students
+This design keeps the core data normalized and avoids unnecessary duplication while preserving per-subject result records.
 
 ---
 
-👤 Student Dashboard
+## 4. Authentication flow
 
-Each student will have a personal dashboard where they can view:
-
-- Personal information
-- Class
-- Set
-- Subjects
-- Scores
-- Grades
-- Average
-- Position where applicable
-- Published results
-- Previous results
-
-Students will only be able to access information they are authorized to view.
+1. User submits credentials to /api/auth/login.
+2. Server verifies the email or schoolId/staffId and password.
+3. Server creates a JWT with the user ID and role.
+4. The client sends the token in the Authorization header as Bearer <token>.
+5. protect middleware validates the token and attaches the user to req.user.
 
 ---
 
-🔐 Authentication & Authorization
+## 5. Authorization / role system
 
-The application will use role-based access control (RBAC).
+### Principal
 
-Different users will have different permissions.
+Can manage:
 
-Example Roles
+- teachers
+- students
+- classes
+- subjects
+- assignments
+- form teachers
+- school dashboard
 
-Administrator
- ├── Manage students
- ├── Manage classes
- ├── Manage sets
- ├── Manage subjects
- ├── Manage results
- ├── Manage users
- └── View school analytics
+### Teacher
 
-Teacher
- ├── Enter results
- ├── Edit permitted results
- ├── View assigned classes
- └── View student performance
+Can:
 
-Student
- ├── View profile
- └── View published results
+- view assigned classes
+- upload results for assigned subjects
+- see uploaded result records
 
-Sensitive operations will only be accessible to authorized users.
+Cannot:
 
----
+- upload unrelated results
+- approve unrelated class submissions
+- access a different student's result beyond their own profile as a student
 
-👨‍💻 Development Team
+### Form Teacher
 
-The project will be developed by a multidisciplinary team.
+Can:
 
-Team Roles
+- review results for the assigned class
+- approve or reject results
+- generate result sheets for that class
 
-Role| Main Responsibility
-👑 Lead Developer| Technical leadership, architecture, code review and coordination
-🎨 UI/UX Designer| User experience, wireframes, prototypes and visual design
-💻 Frontend Developer| User interface, components, routing and API integration
-⚙️ Backend Developer| APIs, database, authentication and business logic
-🔄 Full-Stack Developer| Complete features across frontend and backend
+Cannot:
 
----
+- access a different class without assignment
 
-👑 Lead Developer
+### Student
 
-The Lead Developer is responsible for the overall technical direction of the project.
+Can:
 
-Responsibilities
+- view own profile
+- view own student result records
+- view own final result sheet
 
-- Define the overall system architecture.
-- Establish coding standards.
-- Decide major technical approaches.
-- Coordinate developers.
-- Assign technical tasks.
-- Review important pull requests.
-- Resolve technical conflicts.
-- Review major features.
-- Identify technical risks.
-- Ensure frontend and backend integration.
-- Maintain development standards.
-- Ensure the project remains scalable and maintainable.
+Cannot:
 
-The Lead Developer acts as the main technical coordinator between the different development teams.
+- access another student's result
+- upload or edit results
+- access principal or teacher dashboards
 
 ---
 
-🎨 UI/UX Designer
+## 6. API endpoints
 
-The UI/UX Designer is responsible for the visual design and user experience of the platform.
+### Authentication
 
-Responsibilities
+- POST /api/auth/bootstrap-principal
+- POST /api/auth/login
+- GET /api/auth/me
 
-- Design the application's user interface.
-- Create wireframes.
-- Create prototypes.
+### Principal
+
+- GET /api/principal/dashboard
+- POST /api/principal/teachers
+- POST /api/principal/students
+- POST /api/principal/classes
+- POST /api/principal/subjects
+- POST /api/principal/classes/subjects
+- POST /api/principal/teacher-subjects
+- POST /api/principal/form-teachers
+
+### Teacher
+
+- GET /api/teacher/dashboard
+- GET /api/teacher/students
+- GET /api/teacher/results
+- POST /api/teacher/results
+
+### Form Teacher
+
+- GET /api/form-teacher/dashboard
+- POST /api/form-teacher/results/:resultId/review
+- POST /api/form-teacher/generate-result-sheets
+
+### Student
+
+- GET /api/student/profile
+- GET /api/student/results
+- GET /api/student/results/:studentId
+- GET /api/student/result-sheet
+
+---
+
+## 7. Result upload workflow
+
+1. A teacher logs in and loads the dashboard.
+2. Only assigned classes and subjects are available to that teacher.
+3. Teacher submits result entries for a class and subject.
+4. Server validates:
+   - teacher is assigned to the class;
+   - teacher is assigned to the subject;
+   - subject is offered in that class;
+   - each student belongs to the class.
+5. Each result is saved as a ResultSubmission with status = PENDING.
+6. The system routes every submission to the correct form teacher for the class.
+
+---
+
+## 8. Form Teacher approval workflow
+
+1. Form Teacher loads results for assigned class.
+2. Server filters results by formTeacherClass.
+3. Teacher reviews each result and sets APPROVED or REJECTED.
+4. The server updates the result record and stores form teacher identity and timestamps.
+5. Once approved results exist, the form teacher can generate a per-student result sheet.
+
+---
+
+## 9. Student result access workflow
+
+1. Student authenticates and receives a JWT.
+2. Every student dashboard call runs through protect middleware.
+3. When a student requests a result, the server compares the requested student ID to req.user.schoolId.
+4. If they mismatch, the request is rejected with 403.
+5. This prevents IDOR/BOLA-style attacks even when a malicious user alters URL parameters.
+
+---
+
+## 10. Recommended folder structure
+
+```text
+udss/
+├── src/
+│   ├── config/
+│   │   └── db.js
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── principalController.js
+│   │   ├── teacherController.js
+│   │   ├── formTeacherController.js
+│   │   └── studentController.js
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   └── authorize.js
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Classroom.js
+│   │   ├── Subject.js
+│   │   ├── TeacherProfile.js
+│   │   ├── StudentProfile.js
+│   │   ├── ResultSubmission.js
+│   │   └── ResultSheet.js
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── principalRoutes.js
+│   │   ├── teacherRoutes.js
+│   │   ├── formTeacherRoutes.js
+│   │   └── studentRoutes.js
+│   └── utils/
+│       └── permissions.js
+├── .env.example
+├── server.js
+├── README.md
+├── index.html
+├── package.json
+└── .gitignore
+```
+
+---
+
+## Implementation status
+
+The backend core is now implemented with:
+
+- secure authentication;
+- role-based access control;
+- structured MongoDB models;
+- teacher upload flow;
+- form-teacher review flow;
+- student-only result access enforcement;
+- result-sheet generation.
+
+Next steps for the project would be to add the frontend pages, integrate Swagger documentation, and extend the result logic with grade computation and subject completeness checks.
+
 - Design dashboards.
 - Design login and authentication screens.
 - Design student profiles.

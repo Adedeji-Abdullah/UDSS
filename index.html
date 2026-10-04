@@ -1,11 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>UDSS</h1>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UDSS Portal</title>
+    <link rel="stylesheet" href="/public/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <section id="authScreen" class="auth-card">
+        <div class="card-header">
+          <h1>UDSS School Portal</h1>
+          <p>Secure school management and result dashboard</p>
+        </div>
+
+        <div class="auth-body">
+          <div class="form-grid">
+            <form id="loginForm">
+              <div class="form-group">
+                <label for="identifier">Email or Student/Staff ID</label>
+                <input id="identifier" name="identifier" type="text" placeholder="e.g. principal@school.com or QID001" required />
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" placeholder="Enter password" required />
+              </div>
+              <button class="primary-btn" type="submit">Login</button>
+            </form>
+
+            <hr />
+
+            <form id="bootstrapForm">
+              <div class="form-group">
+                <label for="bootstrapSecret">Bootstrap secret</label>
+                <input id="bootstrapSecret" name="secret" type="text" value="udss-bootstrap" />
+              </div>
+              <div class="form-group">
+                <label for="principalName">Principal name</label>
+                <input id="principalName" name="name" type="text" placeholder="Principal full name" />
+              </div>
+              <div class="form-group">
+                <label for="principalEmail">Principal email</label>
+                <input id="principalEmail" name="email" type="email" placeholder="principal@school.com" />
+              </div>
+              <div class="form-group">
+                <label for="principalPassword">Principal password</label>
+                <input id="principalPassword" name="password" type="password" placeholder="Create password" />
+              </div>
+              <button class="secondary-btn" type="submit">Create principal account</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="dashboardScreen" class="dashboard-panel hidden">
+        <div class="topbar">
+          <div class="brand">UDSS Portal</div>
+          <div class="user-meta">
+            <span id="userName">User</span>
+            <span id="userRoleBadge" class="role-badge">ROLE</span>
+            <button id="logoutBtn" class="small-btn hidden" type="button">Logout</button>
+          </div>
+        </div>
+
+        <div class="dashboard-wrap">
+          <div class="dashboard-header">
+            <h2>Dashboard</h2>
+            <div class="tab-group">
+              <button class="role-tab small-btn" data-role="principal" type="button">Principal</button>
+              <button class="role-tab small-btn" data-role="teacher" type="button">Teacher</button>
+              <button class="role-tab small-btn" data-role="student" type="button">Student</button>
+            </div>
+          </div>
+
+          <div id="notice" class="notice hidden">Loading...</div>
+
+          <div id="principalPanel" class="role-panel hidden">
+            <div class="admin-hero">
+              <div>
+                <span class="eyebrow">Admin Portal</span>
+                <h3>School Administration Center</h3>
+              </div>
+              <button type="button" class="ghost-btn">Quick Actions</button>
+            </div>
+
+            <div id="principalStats" class="card-grid"></div>
+
+            <div class="two-column-grid">
+              <div class="section-card form-card">
+                <h3>Create Teacher</h3>
+                <form id="createTeacherForm" class="stack-form">
+                  <input name="name" type="text" placeholder="Teacher name" required />
+                  <input name="email" type="email" placeholder="Teacher email" required />
+                  <input name="password" type="password" placeholder="Teacher password" required />
+                  <input name="subjectIds" type="text" placeholder="Subject IDs (optional)" />
+                  <input name="classIds" type="text" placeholder="Class IDs (optional)" />
+                  <button class="primary-btn" type="submit">Create teacher</button>
+                </form>
+              </div>
+
+              <div class="section-card form-card">
+                <h3>Create Student</h3>
+                <form id="createStudentForm" class="stack-form">
+                  <input name="name" type="text" placeholder="Student name" required />
+                  <input name="email" type="email" placeholder="Student email" required />
+                  <input name="password" type="password" placeholder="Student password" required />
+                  <input name="classId" type="text" placeholder="Class ID" required />
+                  <input name="subjectIds" type="text" placeholder="Subject IDs (optional)" />
+                  <button class="primary-btn" type="submit">Create student</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="two-column-grid">
+              <div class="section-card form-card">
+                <h3>Create Class</h3>
+                <form id="createClassForm" class="stack-form">
+                  <input name="name" type="text" placeholder="Class name e.g. SS2A" required />
+                  <button class="primary-btn" type="submit">Create class</button>
+                </form>
+              </div>
+
+              <div class="section-card form-card">
+                <h3>Create Subject</h3>
+                <form id="createSubjectForm" class="stack-form">
+                  <input name="name" type="text" placeholder="Subject name" required />
+                  <input name="code" type="text" placeholder="Subject code" />
+                  <label class="checkbox-row">
+                    <input name="isElective" type="checkbox" />
+                    Elective subject
+                  </label>
+                  <button class="primary-btn" type="submit">Create subject</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div id="teacherPanel" class="role-panel hidden">
+            <div id="teacherStats" class="card-grid"></div>
+
+            <div class="two-column-grid">
+              <div class="section-card form-card">
+                <h3>Upload Results</h3>
+                <form id="uploadResultForm" class="stack-form">
+                  <input name="classId" type="text" placeholder="Class ID" required />
+                  <input name="subjectId" type="text" placeholder="Subject ID" required />
+                  <input name="academicSession" type="text" placeholder="Academic session e.g. 2026/2027" required />
+                  <input name="term" type="text" placeholder="Term e.g. First Term" required />
+                  <textarea name="entries" rows="6" placeholder='Use JSON like [{"studentId":"QID122","score":88}]' required></textarea>
+                  <button class="primary-btn" type="submit">Upload results</button>
+                </form>
+              </div>
+
+              <div class="section-card form-card">
+                <h3>Form Teacher Review</h3>
+                <form id="reviewResultForm" class="stack-form">
+                  <input name="resultId" type="text" placeholder="Result ID" required />
+                  <select name="status">
+                    <option value="APPROVED">Approved</option>
+                    <option value="REJECTED">Rejected</option>
+                  </select>
+                  <textarea name="comments" rows="6" placeholder="Review comments"></textarea>
+                  <button class="primary-btn" type="submit">Review result</button>
+                </form>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <h3>Uploaded result records</h3>
+              <ul id="teacherResults" class="list"></ul>
+            </div>
+
+            <div class="section-card form-card">
+              <h3>Generate Result Sheets</h3>
+              <form id="generateSheetForm" class="stack-form">
+                <input name="classId" type="text" placeholder="Class ID" required />
+                <input name="academicSession" type="text" placeholder="Academic session" required />
+                <input name="term" type="text" placeholder="Term" required />
+                <button class="primary-btn" type="submit">Generate sheets</button>
+              </form>
+            </div>
+          </div>
+
+          <div id="studentPanel" class="role-panel hidden">
+            <div class="section-card">
+              <h3>Student profile</h3>
+              <div id="studentProfile"></div>
+            </div>
+            <div class="section-card">
+              <h3>Student results</h3>
+              <ul id="studentResults" class="list"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="/public/app.js"></script>
+  </body>
 </html>
