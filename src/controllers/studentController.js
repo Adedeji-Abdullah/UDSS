@@ -39,6 +39,51 @@ export const getStudentResultById = async (req, res) => {
   return res.json({ studentId: requestedId, results });
 };
 
+export const getStudentLeaderboard = async (req, res) => {
+  const approvedResults = await ResultSubmission.find({ status: "APPROVED" })
+    .populate("student class")
+    .sort({ score: -1, createdAt: -1 });
+
+  const leaderboardMap = new Map();
+
+  approvedResults.forEach((result) => {
+    const studentId = result.student?._id ? result.student._id.toString() : result.student?.toString();
+    const studentName = result.student?.name || "Student";
+    const className = result.class?.name || "N/A";
+
+    if (!studentId) return;
+
+    if (!leaderboardMap.has(studentId)) {
+      leaderboardMap.set(studentId, {
+        studentId: result.studentId,
+        name: studentName,
+        className,
+        total: 0,
+        count: 0,
+      });
+    }
+
+    const studentEntry = leaderboardMap.get(studentId);
+    studentEntry.total += Number(result.score || 0);
+    studentEntry.count += 1;
+  });
+
+  const leaderboard = Array.from(leaderboardMap.values())
+    .map((entry) => ({
+      ...entry,
+      average: Number(((entry.total / entry.count) || 0).toFixed(2)),
+    }))
+    .sort((a, b) => b.average - a.average || b.total - a.total);
+
+  const currentRank = leaderboard.findIndex((entry) => entry.studentId === req.user.schoolId);
+
+  return res.json({
+    leaderboard: leaderboard.slice(0, 10),
+    currentStudent: leaderboard[currentRank] || null,
+    currentRank: currentRank >= 0 ? currentRank + 1 : null,
+  });
+};
+
 export const getStudentResultSheet = async (req, res) => {
   const { academicSession, term } = req.query;
 

@@ -477,6 +477,69 @@ label {
   flex-direction: row;
 }
 
+.leaderboard {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.leaderboard-item,
+.leaderboard-current-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.8));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.leaderboard-item.current {
+  border-color: rgba(96, 165, 250, 0.5);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.14), rgba(15, 23, 42, 0.8));
+}
+
+.leaderboard-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(96, 165, 250, 0.14);
+  color: #dbeafe;
+  font-weight: 800;
+}
+
+.leaderboard-meta {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+}
+
+.leaderboard-meta small {
+  color: var(--muted);
+}
+
+.leaderboard-score {
+  font-weight: 800;
+  color: #bfdbfe;
+}
+
+.leaderboard-current-summary {
+  margin-top: 8px;
+  color: #dbeafe;
+  font-size: 0.92rem;
+}
+
+.leaderboard-empty {
+  list-style: none;
+  color: var(--muted);
+}
+
 hr {
   border: 0;
   border-top: 1px solid var(--border);

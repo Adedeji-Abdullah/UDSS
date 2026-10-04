@@ -21,6 +21,7 @@ const elements = {
   teacherStats: document.getElementById("teacherStats"),
   studentProfile: document.getElementById("studentProfile"),
   studentResults: document.getElementById("studentResults"),
+  studentLeaderboard: document.getElementById("studentLeaderboard"),
   teacherResults: document.getElementById("teacherResults"),
   notice: document.getElementById("notice"),
   createTeacherForm: document.getElementById("createTeacherForm"),
@@ -137,10 +138,16 @@ function renderResultRows(container, results, emptyMessage = "No results found."
 }
 
 function renderRoleTabs() {
+  const currentRole = state.user?.role;
+
   elements.roleTabs.forEach((tab) => {
-    const isActive = tab.dataset.role === state.user?.role;
-    tab.classList.toggle("active", isActive);
-    tab.disabled = !state.user;
+    const tabRole = tab.dataset.role;
+    const isCurrentRole = tabRole === currentRole;
+    const isAllowed = !currentRole || tabRole === currentRole;
+
+    tab.classList.toggle("active", isCurrentRole);
+    tab.disabled = !isAllowed;
+    tab.style.display = currentRole ? (isAllowed ? "inline-flex" : "none") : "inline-flex";
   });
 }
 
@@ -164,10 +171,42 @@ function renderStudentProfile(profile) {
   `;
 }
 
+function renderLeaderboard(list, currentStudent = null) {
+  if (!list || !list.length) {
+    elements.studentLeaderboard.innerHTML = "<li class='leaderboard-empty'>No approved results yet.</li>";
+    return;
+  }
+
+  elements.studentLeaderboard.innerHTML = list
+    .map((entry, index) => {
+      const isCurrent = currentStudent && entry.studentId === currentStudent.studentId;
+      const extraClass = isCurrent ? "leaderboard-item current" : "leaderboard-item";
+      return `
+        <li class="${extraClass}">
+          <span class="leaderboard-rank">#${index + 1}</span>
+          <div class="leaderboard-meta">
+            <strong>${entry.name}</strong>
+            <small>${entry.className}</small>
+          </div>
+          <span class="leaderboard-score">${entry.average}%</span>
+        </li>
+      `;
+    })
+    .join("");
+
+  if (currentStudent) {
+    const currentLine = document.createElement("li");
+    currentLine.className = "leaderboard-current-summary";
+    currentLine.innerHTML = `You are ranked <strong>#${currentStudent.rank}</strong> with an average of <strong>${currentStudent.average}%</strong>.`;
+    elements.studentLeaderboard.appendChild(currentLine);
+  }
+}
+
 function updateRolePanels() {
   const role = state.user?.role;
   Object.entries(elements.rolePanels).forEach(([key, panel]) => {
-    panel.classList.toggle("hidden", key !== role);
+    const isAllowed = !role || key === role;
+    panel.classList.toggle("hidden", !isAllowed);
   });
 }
 
@@ -195,8 +234,19 @@ async function loadStudentDashboard() {
   try {
     const profile = await apiRequest("/student/profile");
     const results = await apiRequest("/student/results");
+    const leaderboardData = await apiRequest("/student/leaderboard");
     renderStudentProfile(profile);
     renderResultRows(elements.studentResults, results.results || [], "No result records yet.");
+
+    const leaderboard = (leaderboardData.leaderboard || []).map((entry, index) => ({
+      ...entry,
+      rank: index + 1,
+    }));
+    const currentStudent = leaderboardData.currentStudent
+      ? { ...leaderboardData.currentStudent, rank: leaderboardData.currentRank }
+      : null;
+
+    renderLeaderboard(leaderboard, currentStudent);
   } catch (error) {
     showNotice(error.message, "error");
   }
@@ -452,6 +502,11 @@ async function init() {
     tab.addEventListener("click", () => {
       if (!state.user) return;
       const role = tab.dataset.role;
+
+      if (state.user.role !== role) {
+        return;
+      }
+
       Object.entries(elements.rolePanels).forEach(([key, panel]) => {
         panel.classList.toggle("hidden", key !== role);
       });
