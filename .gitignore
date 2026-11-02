@@ -1,3 +1,7 @@
-node_modules
+node_modules/
 .env
-.env.example
+.evn
+backups/
+*.log
+.DS_Store
+.git/
