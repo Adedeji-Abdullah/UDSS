@@ -1,7 +1,7 @@
-require("dotenv").config();
 const express=require("express"),mongoose=require("mongoose"),bcrypt=require("bcryptjs"),jwt=require("jsonwebtoken"),helmet=require("helmet"),rateLimit=require("express-rate-limit"),path=require("path");
+require("dotenv").config({path:path.join(__dirname,"..",".env")});
 const {generateRegistrationOptions,verifyRegistrationResponse,generateAuthenticationOptions,verifyAuthenticationResponse}=require("@simplewebauthn/server");
-const app=express();app.use(helmet({contentSecurityPolicy:false}));app.use(express.json({limit:"100kb"}));app.use(express.static(path.join(__dirname,"public")));app.use("/api/auth",rateLimit({windowMs:900000,limit:60}));
+const app=express();app.use(helmet({contentSecurityPolicy:false}));app.use(express.json({limit:"100kb"}));app.use(express.static(path.join(__dirname,"..","frontend")));app.use("/images",express.static(path.join(__dirname,"assets","images")));app.use("/vendor",express.static(path.join(__dirname,"assets","vendor")));app.use("/api/auth",rateLimit({windowMs:900000,limit:60}));
 
 mongoose.connection.on("connected", () => console.log("MONGODB EVENT: connected"));
 mongoose.connection.on("disconnected", () => console.error("MONGODB EVENT: disconnected"));

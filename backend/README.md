@@ -6,11 +6,10 @@ Includes a responsive UDSS-branded frontend, Node.js/Express API, MongoDB models
 Node.js 20+, npm, and a MongoDB database (for example MongoDB Atlas).
 
 ## Install
-1. Extract the folder.
-2. Copy `.env.example` to `.env`.
+1. Copy `backend/.env.example` to `.env` in the project root.
 3. Fill in `MONGODB_URI`, `JWT_SECRET` (at least 32 characters), and a private `BOOTSTRAP_KEY`.
-4. Run `npm install`
-5. Run `npm start`
+4. From `backend`, run `npm install`.
+5. From `backend`, run `npm start`.
 6. Open `http://127.0.0.1:3000`
 
 Principal uses email + password; teachers use staff ID + password; students use UID + password. The first principal setup needs the private setup key and becomes disabled after a principal is created. Never share `.env`, passwords or setup keys.
