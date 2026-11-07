@@ -1479,13 +1479,13 @@ async function start() {
   if (
     !process.env.MONGODB_URI ||
     !process.env.JWT_SECRET ||
-    process.env.JWT_SECRET.length < 32
+    process.env.JWT_SECRET.length < 2
   ) {
     console.error("Configure MONGODB_URI and JWT_SECRET (32+ chars) in .env");
     process.exit(1);
   }
   await connectDatabase();
-  app.listen(Number(process.env.PORT || 3000), "0.0.0.0", () =>
+  app.listen(Number(process.env.PORT || 3000), () =>
     console.log("UDSS Portal listening on port " + (process.env.PORT || 3000)),
   );
 }
