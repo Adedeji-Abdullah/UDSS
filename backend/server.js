@@ -1457,7 +1457,7 @@ app.get("/api/student/results", protect, roles("student"), async (q, r) =>
 );
 app.get("/api/health", (q, r) =>
   r.json({
-    ok: true,
+    ok: true, 
     database:
       mongoose.connection.readyState === 1 ? "connected" : "disconnected",
   }),
