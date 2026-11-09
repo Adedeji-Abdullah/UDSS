@@ -585,7 +585,7 @@ app.get("/api/health", (q, r) =>
 );
 app.post("/api/auth/bootstrap-principal", async (q, r, next) => {
   try {
-    if (await User.exists({ role: "principal" }))
+    if ((await User.countDocuments({ role: "principal" })) >= 3)
       return r
         .status(403)
         .json({ error: "Principal setup is already complete." });
