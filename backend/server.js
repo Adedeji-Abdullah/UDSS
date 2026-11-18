@@ -409,6 +409,22 @@ app.get(
   },
 );
 
+app.get("/leaderboard", async (req, res) => {
+  try {
+    const students = await Result.find();
+    const studentId = students.studentId;
+    console.log(studentId)
+    const data = await User.findOne({
+      studentId: studentId,
+      role: "student"
+    });
+    console.log(data);
+    res.json({ data: data, students: students });
+  } catch (e) {
+    res.json(e);
+  }
+});
+
 app.post(
   "/api/teacher/assessments",
   protect,
@@ -450,12 +466,10 @@ app.post(
         String(student.classId || "") !==
         String(subject.classId?._id || subject.classId || "")
       )
-        return r
-          .status(400)
-          .json({
-            error:
-              "This student does not belong to the selected subject's class. Check the student's class assignment.",
-          });
+        return r.status(400).json({
+          error:
+            "This student does not belong to the selected subject's class. Check the student's class assignment.",
+        });
 
       const cleanMarks = {},
         cleanMaximums = {};
@@ -465,11 +479,9 @@ app.post(
             ? 10
             : Number(maximums[k]);
         if (!Number.isFinite(max) || max <= 0 || max > 100)
-          return r
-            .status(400)
-            .json({
-              error: "Each maximum score must be above 0 and at most 100.",
-            });
+          return r.status(400).json({
+            error: "Each maximum score must be above 0 and at most 100.",
+          });
         cleanMaximums[k] = max;
 
         const raw = marks[k];
@@ -478,11 +490,9 @@ app.post(
         } else {
           const mark = Number(raw);
           if (!Number.isFinite(mark) || mark < 0 || mark > max)
-            return r
-              .status(400)
-              .json({
-                error: `${k} must be between 0 and its maximum score (${max}).`,
-              });
+            return r.status(400).json({
+              error: `${k} must be between 0 and its maximum score (${max}).`,
+            });
           cleanMarks[k] = mark;
         }
       }
@@ -595,11 +605,9 @@ app.post("/api/auth/bootstrap-principal", async (q, r, next) => {
         .status(403)
         .json({ error: "Setup key is incorrect or not configured." });
     if (!name || !email || !password || password.length < 12)
-      return r
-        .status(400)
-        .json({
-          error: "Name, email and password of 12+ characters required.",
-        });
+      return r.status(400).json({
+        error: "Name, email and password of 12+ characters required.",
+      });
     const u = await User.create({
       name,
       email,
@@ -725,12 +733,9 @@ app.post(
         active: true,
       });
       if (!user || !user.email) {
-        return r
-          .status(400)
-          .json({
-            error:
-              "A parent email address is required for passkey registration.",
-          });
+        return r.status(400).json({
+          error: "A parent email address is required for passkey registration.",
+        });
       }
 
       const existing = await PasskeyCredential.find({ user: user._id });
@@ -1165,11 +1170,9 @@ app.post(
     try {
       const { name, email, staffId, password } = q.body;
       if (!name || !staffId || !password || password.length < 12)
-        return r
-          .status(400)
-          .json({
-            error: "Name, staff ID and 12+ character password required.",
-          });
+        return r.status(400).json({
+          error: "Name, staff ID and 12+ character password required.",
+        });
       const u = await User.create({
         name,
         email: email || undefined,
@@ -1191,11 +1194,9 @@ app.post(
     try {
       const { name, schoolId, password, classId } = q.body;
       if (!name || !schoolId || !password || password.length < 12 || !classId)
-        return r
-          .status(400)
-          .json({
-            error: "Name, UID, class and 12+ character password required.",
-          });
+        return r.status(400).json({
+          error: "Name, UID, class and 12+ character password required.",
+        });
       const classroom = await Classroom.findById(classId);
       if (!classroom)
         return r.status(400).json({ error: "Please select a valid class." });
@@ -1457,7 +1458,7 @@ app.get("/api/student/results", protect, roles("student"), async (q, r) =>
 );
 app.get("/api/health", (q, r) =>
   r.json({
-    ok: true, 
+    ok: true,
     database:
       mongoose.connection.readyState === 1 ? "connected" : "disconnected",
   }),
